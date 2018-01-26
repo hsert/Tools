@@ -20,16 +20,20 @@ def addPuWeight( puDict, iFile, iDir, iTree, isData=False ) :
     count = 0
     for i in range( t.GetEntries() ) :
     	t.GetEntry( i )
-    	if(t.nTruePU >0 ):
-        	if count % 10000 == 0 : print "Event:",count
-        	nTrPu = ( math.floor(t.nTruePU * 10))/10
-        	if isData :
-                    puweight[0] = 1
-                else :
-                    puweight[0] = puDict[ nTrPu ]
+        if count % 10000 == 0 : print "Event:",count
+        nTrPu = ( math.floor(t.nTruePU * 10))/10
+        if(nTrPu > 98):
+            nTrPu = 98
+        elif(nTrPu < 0):
+            nTrPu = 0
 
-                puweightB.Fill()
-        	count += 1
+        if isData :
+            puweight[0] = 1
+        else:
+            #print "puDict[ nTrPu ]", puDict[ nTrPu ]
+            puweight[0] = puDict[ nTrPu ]
+            puweightB.Fill()
+            count += 1
     
     print "DONE!"
     
@@ -50,5 +54,5 @@ if '__main__' in __name__ :
     base = '$CMSSW_BASE/src/../../Samples/2018_01_14/'
    
     isData = False
-    addPuWeight( puDict, base+'NTuple_RunIIFall17MiniAOD-94X_mc2017_realistic_v10-v1_14_01_2018_etst.root', dName, tName, isData )
+    addPuWeight( puDict, base+'NTuple_DYJets_RunIIFall17MiniAOD-RECOSIMstep_94X_mc2017_realistic_v10-v1_14_01_2018_PU.root', dName, tName, isData )
     
