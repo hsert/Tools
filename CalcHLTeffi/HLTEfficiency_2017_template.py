@@ -1,0 +1,280 @@
+#!/usr/bin/python
+#
+from ROOT import *
+from array import array
+import numpy as n
+import os
+
+import datetime
+today=datetime.date.today().strftime("%Y-%m-%d")
+date=today
+
+files = ("data/NTuple_Data2017BCDEF_17Nov2017-v1_14_01_2018_SSsubtraction_mediumTauMVAWP_forFit.root", "data/NTuple_DYJets_RunIIFall17MiniAOD-RECOSIMstep_94X_mc2017_realistic_nomPlusExt_14_01_2018_PU_OStaugenmatch_mediumTauMVAWP_forFit.root")
+
+plotdir = "plots/" + date +"/test/"
+print "plot directory", plotdir
+if not os.path.exists(plotdir):
+		os.makedirs(plotdir)
+	
+	
+Sample2016 = False
+Sample2017 = True
+
+gStyle.SetFrameLineWidth(1)
+gStyle.SetPadBottomMargin(0.13)
+gStyle.SetPadLeftMargin(0.15)
+gStyle.SetPadTopMargin(0.09)
+gStyle.SetPadRightMargin(0.05)
+
+gStyle.SetLabelFont(42,"X")
+gStyle.SetLabelFont(42,"Y")
+gStyle.SetLabelSize(0.04,"X")
+gStyle.SetLabelSize(0.04,"Y")
+gStyle.SetLabelOffset(0.01,"Y")
+gStyle.SetTickLength(0.02,"X")
+gStyle.SetTickLength(0.02,"Y")
+gStyle.SetLineWidth(1)
+gStyle.SetTickLength(0.02 ,"Z")
+
+gStyle.SetTitleSize(0.1)
+gStyle.SetTitleFont(42,"X")
+gStyle.SetTitleFont(42,"Y")
+gStyle.SetTitleSize(0.05,"X")
+gStyle.SetTitleSize(0.05,"Y")
+gStyle.SetTitleOffset(1.1,"X")
+gStyle.SetTitleOffset(1.4,"Y")
+gStyle.SetOptStat(0)
+gStyle.SetPalette(1)
+gStyle.SetPaintTextFormat("3.2f")
+gROOT.ForceStyle()
+
+
+print "Creating histograms"
+NBINS = 12
+edges = [20.0, 25.0, 30.0, 35.0, 40.0, 45.0, 50.0, 60.0, 80.0, 100.0, 150.0, 200.0, 500.0]
+
+hPtDenomin1 = TH1F ("hPtDenom1", "", NBINS, array('d',edges))
+hPtNomTTin1 = TH1F ("hPtNomTT1", "", NBINS, array('d',edges))
+hPtNomMTin1 = TH1F ("hPtNomMT1", "", NBINS, array('d',edges))
+
+hPtDenomin2 = TH1F ("hPtDenom2", "", NBINS, array('d',edges))
+hPtNomTTin2 = TH1F ("hPtNomTT2", "", NBINS, array('d',edges))
+hPtNomMTin2 = TH1F ("hPtNomMT2", "", NBINS, array('d',edges))
+
+Nbins = 5
+edgesNvtx = [20.0, 30.0, 40.0, 50.0, 60.0, 70.0]
+hNvtxDenTTin1 = TH1F ("hNvtxDenomTT1", "", Nbins, array('d',edgesNvtx))
+hNvtxDenMTin1 = TH1F ("hNvtxDenomMT1", "", Nbins, array('d',edgesNvtx))
+hNvtxNomTTin1 = TH1F ("hNvtxNomTT1", "", Nbins, array('d',edgesNvtx))
+hNvtxNomMTin1 = TH1F ("hNvtxNomMT1", "", Nbins, array('d',edgesNvtx))
+
+hNvtxDenTTin2 = TH1F ("hNvtxDenomTT2", "", Nbins, array('d',edgesNvtx))
+hNvtxDenMTin2 = TH1F ("hNvtxDenomMT2", "", Nbins, array('d',edgesNvtx))
+hNvtxNomTTin2 = TH1F ("hNvtxNomTT2", "", Nbins, array('d',edgesNvtx))
+hNvtxNomMTin2 = TH1F ("hNvtxNomMT2", "", Nbins, array('d',edgesNvtx))
+
+
+g_efficiencyTT = []
+
+numberOfHLTTriggers = 19
+
+for index, filename in enumerate(files):
+	print  "filename", filename
+	file = TFile.Open(filename)
+	tree = file.Get('TagAndProbe')
+	triggerNamesTree = file.Get("triggerNames")
+
+	print "Populating histograms"
+	NhasHLT  = [n.zeros(1, dtype=int) for x in range (0, numberOfHLTTriggers+1)]
+	Nevts = 0
+	for iEv in range (0, tree.GetEntries()):
+		tree.GetEntry(iEv)
+
+		if abs(tree.tauEta) > 2.1:
+			continue
+			
+		tauPt = tree.tauPt
+		HLTPt = tree.hltPt
+		tauEta = tree.tauEta
+		isOS = tree.isOS
+		Nvtx = tree.Nvtx
+		if (index==1):
+			puweight = tree.puweight
+		else:
+			puweight=1
+		hasHLTPath_10 = tree.hasHLTPath_10
+		hasHLTPath_0= tree.hasHLTPath_0
+		hasHLTPath_1 = tree.hasHLTPath_1
+		hasHLTPath_8 = tree.hasHLTPath_8
+
+		Nevents = tree.EventNumber
+ 
+		hasHLTFortauh = 1
+		triggerBits = tree.tauTriggerBits
+		Nevts =Nevts + 1
+		
+		bkgSubW = 1. if tree.isOS else -1.
+		weight = bkgSubW*puweight
+		
+		if(tree.RunNumber <= 306126 and tree.byTightIsolationMVArun2v1DBoldDMwLT> 0.5):
+			if (index==0):	
+				hPtDenomin1.Fill(tauPt, weight)
+				if (hasHLTPath_8):
+					hPtNomTTin1.Fill(tauPt, weight)
+				if(hasHLTPath_0):
+					hPtNomMTin1.Fill(tauPt, weight)
+			elif (index==1):
+				hPtDenomin2.Fill(tauPt, weight)
+				if (hasHLTPath_8): 
+					hPtNomTTin2.Fill(tauPt, weight)
+				if (hasHLTPath_0):
+					hPtNomMTin2.Fill(tauPt, weight)
+				
+
+#Calculating and saving the efficiencies
+
+g_efficiencyTTin1 = TGraphAsymmErrors()
+g_efficiencyTTin2 = TGraphAsymmErrors()
+g_efficiencyMTin1 = TGraphAsymmErrors()
+g_efficiencyMTin2 = TGraphAsymmErrors()
+
+
+nbins = hNvtxNomTTin1.GetNbinsX()
+for binid in range(0,nbins+1):
+	if(hNvtxDenMTin2.GetBinContent(binid)< hNvtxNomMTin2.GetBinContent(binid)):
+		BinconentMT2 = hNvtxDenMTin2.GetBinContent(binid)
+		hNvtxNomMTin2.SetBinContent(binid, BinconentMT2)
+	if(hNvtxDenMTin1.GetBinContent(binid)< hNvtxNomMTin1.GetBinContent(binid)):
+		hNvtxNomMTin1.SetBinContent(binid, hNvtxDenMTin1.GetBinContent(binid))
+	if(hNvtxDenTTin2.GetBinContent(binid)< hNvtxNomTTin2.GetBinContent(binid)):
+		hNvtxNomTTin2.SetBinContent(binid, hNvtxDenTTin2.GetBinContent(binid))
+	if(hNvtxDenTTin1.GetBinContent(binid)< hNvtxNomTTin1.GetBinContent(binid)):
+		hNvtxNomTTin1.SetBinContent(binid, hNvtxDenTTin2.GetBinContent(binid))	
+		
+nbinsPt = hPtNomTTin1.GetNbinsX()
+for binid2 in range(0,nbinsPt+1):
+	if(hPtDenomin2.GetBinContent(binid2)< hPtNomMTin2.GetBinContent(binid2)):
+		BincontentPtMT2 = hPtDenomin2.GetBinContent(binid2)
+		hPtNomMTin2.SetBinContent(binid2, BincontentPtMT2)
+	if(hPtDenomin1.GetBinContent(binid2)< hPtNomMTin1.GetBinContent(binid2)):
+		hPtNomMTin1.SetBinContent(binid2, hPtDenomin1.GetBinContent(binid2))
+	if(hPtDenomin2.GetBinContent(binid2)< hPtNomTTin2.GetBinContent(binid2)):
+		hPtNomTTin2.SetBinContent(binid2, hPtDenomin2.GetBinContent(binid2))
+	if(hPtDenomin1.GetBinContent(binid2)< hPtNomTTin1.GetBinContent(binid2)):
+		hPtNomTTin1.SetBinContent(binid2, hPtDenomin2.GetBinContent(binid2))	
+		
+	
+	
+g_efficiencyTTin1.BayesDivide(hPtNomTTin1,hPtDenomin1) 
+g_efficiencyTTin2.BayesDivide(hPtNomTTin2,hPtDenomin2)
+g_efficiencyMTin1.BayesDivide(hPtNomMTin1,hPtDenomin1)
+g_efficiencyMTin2.BayesDivide(hPtNomMTin2,hPtDenomin2)
+
+
+g_efficiencyTTin1.SetMarkerSize(4)
+g_efficiencyTTin1.SetMarkerStyle(1)
+g_efficiencyTTin1.SetMarkerColor(kBlue)
+g_efficiencyTTin1.SetLineWidth(2)
+g_efficiencyTTin1.SetLineColor(kBlue)
+
+g_efficiencyTTin2.SetMarkerSize(4)
+g_efficiencyTTin2.SetMarkerColor(kRed)
+g_efficiencyTTin2.SetLineWidth(2)
+g_efficiencyTTin2.SetLineColor(kRed)
+
+
+g_efficiencyMTin1.SetMarkerSize(4)
+g_efficiencyMTin1.SetMarkerStyle(1)
+g_efficiencyMTin1.SetMarkerColor(kBlue)
+g_efficiencyMTin1.SetLineWidth(2)
+g_efficiencyMTin1.SetLineColor(kBlue)
+
+g_efficiencyMTin2.SetMarkerSize(4)
+g_efficiencyMTin2.SetMarkerColor(kRed)
+g_efficiencyMTin2.SetLineWidth(2)
+g_efficiencyMTin2.SetLineColor(kRed)
+
+
+#Lumi box
+lumi = "38.7 fb^{-1} (13 TeV, 2017)" # RunB + RunC + RunD + RunE
+lumibox = TLatex(0.92, 0.92, lumi)
+lumibox.SetNDC()
+lumibox.SetTextAlign(31)
+lumibox.SetTextFont(42)
+lumibox.SetTextSize(0.03)
+lumibox.SetTextColor(kBlack)
+
+
+#CMS box
+cms = "#bf{CMS} #it{Preliminary}" # RunB + RunC + RunD + RunE
+cmsbox = TLatex(0.16, 0.92, cms)
+cmsbox.SetNDC()
+cmsbox.SetTextAlign(11)
+cmsbox.SetTextFont(42)
+cmsbox.SetTextSize(0.03)
+cmsbox.SetTextColor(kBlack)
+
+# Legend
+legend=TLegend(0.5,0.3,0.9,0.50)
+legend.AddEntry(g_efficiencyTTin1, "Data 2017, Run [B-F]", "ple")
+legend.AddEntry(g_efficiencyTTin2, "MC 2017, DY Jets", "ple")
+legend.SetBorderSize(0)
+legend.SetFillColor(0)
+legend.SetFillStyle(0)
+
+legend2=TLegend(0.15,0.2,0.55,0.4)
+legend2.AddEntry(g_efficiencyTTin1, "Data 2017, Run [B-F]", "ple")
+legend2.AddEntry(g_efficiencyTTin2, "MC 2017, DY Jets", "ple")
+legend2.SetBorderSize(0)
+legend2.SetFillColor(0)
+legend2.SetFillStyle(0)
+
+c1 = TCanvas ("c1", "c1", 600, 600)
+c1.SetLogx()
+c1.SetGridx()
+c1.SetGridy()
+
+mgPt_TT = TMultiGraph()
+mgPt_TT.Add(g_efficiencyTTin1)
+mgPt_TT.Add(g_efficiencyTTin2)
+mgPt_TT.Draw("AP")
+
+#mgPt_TT.SetTitle(" HLT_IsoMu24_eta2p1_MediumChargedIsoPFTau35_Trk1_eta2p1_Reg_CrossL1")#
+mgPt_TT.GetXaxis().SetMoreLogLabels()
+mgPt_TT.GetXaxis().SetLimits(20,600)
+mgPt_TT.GetYaxis().SetRangeUser(0,1.1)
+mgPt_TT.GetXaxis().SetTitle("Offline p_{T}^{#tau} [GeV]")
+mgPt_TT.GetYaxis().SetTitle("Efficiency")
+legend.Draw()
+lumibox.Draw()
+cmsbox.Draw()
+c1.Update()
+c1.Print(plotdir+"TrigEff_vs_tauPt_HLT_IsoMu24_eta2p1_MediumChargedIsoPFTau35_Trk1_eta2p1_Reg_CrossL1_combined.png", "png")
+c1.Print(plotdir+"TrigEff_vs_tauPt_HLT_IsoMu24_eta2p1_MediumChargedIsoPFTau35_Trk1_eta2p1_Reg_CrossL1_combined.pdf", "pdf")
+
+
+c2 = TCanvas ("c2", "c2", 600, 600)
+c2.SetLogx()
+c2.SetGridx()
+c2.SetGridy()
+
+mgPt_MT = TMultiGraph()
+mgPt_MT.Add(g_efficiencyMTin1)
+mgPt_MT.Add(g_efficiencyMTin2)
+mgPt_MT.Draw("AP")
+
+#mgPt_MT.SetTitle("HLT_IsoMu24_eta2p1_LooseChargedIsoPFTau20_SingleL1")
+mgPt_MT.GetXaxis().SetMoreLogLabels()
+mgPt_MT.GetXaxis().SetLimits(20,600)
+mgPt_MT.GetYaxis().SetRangeUser(0,1.1)
+mgPt_MT.GetXaxis().SetTitle("Offline p_{T}^{#tau} [GeV]")
+mgPt_MT.GetYaxis().SetTitle("Efficiency")
+legend.Draw()
+lumibox.Draw()
+cmsbox.Draw()
+c2.Update()
+c2.Print(plotdir+"TrigEff_vs_tauPt_HLT_IsoMu24_eta2p1_LooseChargedIsoPFTau20_SingleL1_combined.png", "png")
+c2.Print(plotdir+"TrigEff_vs_tauPt_HLT_IsoMu24_eta2p1_LooseChargedIsoPFTau20_SingleL1_combined.pdf", "pdf")
+
+
+raw_input()
