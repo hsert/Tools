@@ -21,7 +21,7 @@ def makeDataPUTemplate( cert, puJson, year='17' ) :
         '100',
         '--numPileupBins',
         '1000',
-        'data/PileUpTemplate/DataTemplate_RunBF2017_69p2MinBiasXS_100bins.root']
+        'data/PileUpTemplate/DataTemplate_RunBF2017_69p2MinBiasXS_1000bins.root']
     subprocess.call( executeArray )
 
 def makeMCPUTemplateUsingNTruePU( ) :
@@ -34,12 +34,12 @@ def makeMCPUTemplateUsingNTruePU( ) :
 	c1.SetGridx()
 	c1.SetGridy()
 	sTree = samplefile.Get('Ntuplizer/TagAndProbe')
-    for iEv in range (0, sTree.GetEntries()):
-		sTree.GetEntry(iEv)
-			if(use1000bins):
-				dHist.Fill(sTree.nTruePU)
-	        else:
-				sHist.Fill(sTree.nTruePU)
+        for iEv in range (0, sTree.GetEntries()):
+            sTree.GetEntry(iEv)
+            if(use1000bins):
+                dHist.Fill(sTree.nTruePU)
+            else:
+                sHist.Fill(sTree.nTruePU)
 
         if not use1000bins:
             nBins = sHist.GetXaxis().GetNbins()
@@ -171,6 +171,6 @@ if __name__ == '__main__' :
     cert = 'ReReco/Cert_294927-306462_13TeV_EOY2017ReReco_Collisions17_JSON.txt' #~42 fb^{-1}
     year = '17'
     makeDataPUTemplate( cert, 'pileup_latest.txt', year )
-    makeMCPUTemplate()
+    #makeMCPUTemplate()
     makeMCPUTemplateUsingNTruePU()
 
