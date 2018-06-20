@@ -3,6 +3,7 @@
 import ROOT
 import os
 import subprocess
+import math
 
 # New minBias xsec: https://hypernews.cern.ch/HyperNews/CMS/get/luminosity/613/2/1/1/1.html
 def makeDataPUTemplate( cert, puJson, year='17' ) :
@@ -17,11 +18,38 @@ def makeDataPUTemplate( cert, puJson, year='17' ) :
         '--minBiasXsec',
         '69200',
         '--maxPileupBin',
-        '99',
+        '100',
         '--numPileupBins',
-        '990',
-        'data/PileUpTemplate/DataTemplate_RunBF2017_69p2MinBiasXS_99bins.root']
+        '1000',
+        'data/PileUpTemplate/DataTemplate_RunBF2017_69p2MinBiasXS_100bins.root']
     subprocess.call( executeArray )
+
+def makeMCPUTemplateUsingNTruePU( ) :
+	use1000bins = True
+	MCdist = []
+	sHist = TH1F ("sHist", "", 1000, 0, 100)
+	dHist = TH1F ("pileup", "pileup", 1000, 0, 100)
+	samplefile = ROOT.TFile('/eos/user/h/hsert/TriggerStudies/ForkedRepo/Samples/12062018/NTuple_0WJets_12Apr2018_12062018_PU_1000binMC.root', 'READ')
+	c1 = TCanvas ("c1", "c1", 600, 600)
+	c1.SetGridx()
+	c1.SetGridy()
+	sTree = samplefile.Get('Ntuplizer/TagAndProbe')
+    for iEv in range (0, sTree.GetEntries()):
+		sTree.GetEntry(iEv)
+			if(use1000bins):
+				dHist.Fill(sTree.nTruePU)
+	        else:
+				sHist.Fill(sTree.nTruePU)
+
+        if not use1000bins:
+            nBins = sHist.GetXaxis().GetNbins()
+            for i in range(1, nBins + 1):
+                MCdist.append(sHist.GetBinContent(i))
+                print "bin content", sHist.GetBinContent(i)
+            for i in range(1, nBins*10 + 1):
+                dHist.SetBinContent( i, MCdist[ (i-1)/10 ] )
+
+        dHist.SaveAs('data/PileUpTemplate/MCTemplate2017_WJets_nTruePU_1000bins.root')
 
 def makeMCPUTemplate( ) :
     # 25ns pileup distributions found here: https://github.com/cms-sw/cmssw/blob/CMSSW_7_4_X/SimGeneral/MixingModule/python/mix_2015_25ns_Startup_PoissonOOTPU_cfi.py
@@ -132,16 +160,17 @@ def makeMCPUTemplate( ) :
     print "MC # Bins:",nBins
     dHist = ROOT.TH1F('pileup', 'pileup', nBins*10, 0, nBins)
     for i in range( 1, (nBins*10)+1 ) :
-        #print "bin: %i, MC position: %i" % (i, math.floor((i-1)/10) )
+        print "bin: %i, MC position: %i" % (i, math.floor((i-1)/10) )
         dHist.SetBinContent( i, MCDist[ (i-1)/10 ] )
-    dHist.SaveAs('data/PileUpTemplate/MCTemplate2017.root')
+    dHist.SaveAs('data/PileUpTemplate/MCTemplate2017_99bins.root')
 
 
 
 if __name__ == '__main__' :
 
-    cert = 'PromptReco/Cert_294927-306462_13TeV_PromptReco_Collisions17_JSON.txt' #~42 fb^{-1}
+    cert = 'ReReco/Cert_294927-306462_13TeV_EOY2017ReReco_Collisions17_JSON.txt' #~42 fb^{-1}
     year = '17'
     makeDataPUTemplate( cert, 'pileup_latest.txt', year )
-    makeMCPUTemplate()	
+    makeMCPUTemplate()
+    makeMCPUTemplateUsingNTruePU()
 
