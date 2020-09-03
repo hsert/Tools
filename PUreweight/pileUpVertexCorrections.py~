@@ -7,12 +7,12 @@ from collections import OrderedDict
 def PUreweight( dataFile ) :
     # https://twiki.cern.ch/twiki/bin/view/CMS/HiggsToTauTauWorking2015#PU_reweighting
     #data/Data_Pileup_2016_271036-284044_80bins.root - Moriond2017, full 2016 dataset
-    datafile = ROOT.TFile('data/PileUpTemplate/'+dataFile, 'READ') # Moriond2017, full 2016 dataset
+    datafile = ROOT.TFile('data/PileUpTemplate/'+dataFile, 'READ') 
     dHist = datafile.Get('pileup')
     dHist.Scale( 1 / dHist.Integral() )
 
     # For 2017 94X samples
-    samplefile = ROOT.TFile('data/PileUpTemplate/MCTemplate2017.root', 'READ') 
+    samplefile = ROOT.TFile('data/PileUpTemplate/MCTemplate2017_WJets_nTruePU_1000bins.root', 'READ')
     sHist = samplefile.Get('pileup')
     sHist.Scale( 1 / sHist.Integral() )
 

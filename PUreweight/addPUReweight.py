@@ -22,6 +22,7 @@ def addPuWeight( puDict, iFile, iDir, iTree, isData=False ) :
     	t.GetEntry( i )
         if count % 10000 == 0 : print "Event:",count
         nTrPu = ( math.floor(t.nTruePU * 10))/10
+        #print "nTrue", nTrPu
         if(nTrPu > 98):
             nTrPu = 98
         elif(nTrPu < 0):
@@ -30,7 +31,7 @@ def addPuWeight( puDict, iFile, iDir, iTree, isData=False ) :
         if isData :
             puweight[0] = 1
         else:
-            #print "puDict[ nTrPu ]", puDict[ nTrPu ]
+           # print "puDict[ nTrPu ]", puDict[ nTrPu ]
             puweight[0] = puDict[ nTrPu ]
             puweightB.Fill()
             count += 1
@@ -46,13 +47,13 @@ def addPuWeight( puDict, iFile, iDir, iTree, isData=False ) :
 if '__main__' in __name__ :
 
     #### Tau Trigger Efficiencies ####
-    dataFile = 'DataTemplate_RunBF2017_69p2MinBiasXS_99bins.root'
+    dataFile = 'DataTemplate_RunBF2017_69p2MinBiasXS_100bins.root'
     puDict = PUreweight( dataFile )
 
     tName = '/Ntuplizer/TagAndProbe'
     dName = 'Ntuplizer'
-    base = '$CMSSW_BASE/src/../../Samples/2018_01_14/'
-   
+    base = '/eos/user/h/hsert/TriggerStudies/ForkedRepo/Samples/12062018/'
+
     isData = False
-    addPuWeight( puDict, base+'NTuple_DYJets_RunIIFall17MiniAOD-RECOSIMstep_94X_mc2017_realistic_v10-v1_14_01_2018_PU.root', dName, tName, isData )
+    addPuWeight( puDict, base+'NTuple_0WJets_12Apr2018_12062018_PU_1000binMC.root', dName, tName, isData )
     

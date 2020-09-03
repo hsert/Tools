@@ -12,7 +12,7 @@ def PUreweight( dataFile ) :
     dHist.Scale( 1 / dHist.Integral() )
 
     # For 2017 94X samples
-    samplefile = ROOT.TFile('data/PileUpTemplate/MCTemplate2017.root', 'READ') 
+    samplefile = ROOT.TFile('data/PileUpTemplate/MCTemplate2017_WJets_nTruePU_1000bins.root', 'READ') 
     sHist = samplefile.Get('pileup')
     sHist.Scale( 1 / sHist.Integral() )
 
